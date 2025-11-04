@@ -1,1 +1,7 @@
 project_id = "bhxbuifwqezcbhxmfdkn"
+
+[functions.generate-story]
+verify_jwt = true
+
+[functions.suggest-improvements]
+verify_jwt = true
