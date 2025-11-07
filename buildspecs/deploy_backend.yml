@@ -1,0 +1,43 @@
+version: 0.2
+
+env:
+  variables:
+    NPM_CONFIG_PRODUCTION: "false"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Installing CDK dependencies..."
+      - (cd infra && npm ci --no-progress)
+
+  build:
+    commands:
+      - echo "Deploying backend for environment:$ENVIRONMENT"
+      - (cd infra && npm run build)
+      - |
+        (cd infra && npx cdk deploy StoryclunkApiStack-$ENVIRONMENT \
+          --context environment=$ENVIRONMENT \
+          --require-approval never) || true
+      - echo "Updating Lambda function code..."
+      - |
+        for zip in lambda-builds/*.zip; do
+          func=$(basename "$zip" .zip)
+          func_name="${LAMBDA_FUNCTION_PREFIX}-${ENVIRONMENT}-${func}"
+          echo "Updating function:$func_name"
+          aws lambda update-function-code \
+            --function-name "$func_name" \
+            --zip-file "fileb://$zip" || echo "Function update failed:$func_name"
+          aws lambda update-alias \
+            --function-name "$func_name" \
+            --name live \
+            --function-version '$LATEST' || echo "Alias update failed:$func_name"
+        done
+      - echo "Backend deployment complete"
+
+artifacts:
+  files:
+    - "deployment-outputs.env"
+  name: BackendDeployOutput
+

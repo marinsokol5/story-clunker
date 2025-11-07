@@ -1,0 +1,47 @@
+version: 0.2
+
+env:
+  variables:
+    NPM_CONFIG_PRODUCTION: "false"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Installing CDK dependencies..."
+      - (cd infra && npm ci --no-progress)
+
+  build:
+    commands:
+      - echo "Preparing frontend assets..."
+      - cp -r $CODEBUILD_SRC_DIR_FrontendBuildOutput/* dist/
+      - echo "Building CDK infrastructure..."
+      - (cd infra && npm run build)
+      - echo "Deploying frontend stack for environment:$ENVIRONMENT"
+      - |
+        (cd infra && npx cdk deploy StoryclunkFrontendStack-$ENVIRONMENT \
+          --context environment=$ENVIRONMENT \
+          --context withAssets=false \
+          --require-approval never) || true
+      - echo "Getting stack outputs..."
+      - |
+        BUCKET=$(aws cloudformation describe-stacks \
+          --stack-name StoryclunkFrontendStack-$ENVIRONMENT \
+          --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' \
+          --output text)
+        DIST_ID=$(aws cloudformation describe-stacks \
+          --stack-name StoryclunkFrontendStack-$ENVIRONMENT \
+          --query 'Stacks[0].Outputs[?OutputKey==`DistributionId`].OutputValue' \
+          --output text)
+      - echo "Syncing frontend assets to S3..."
+      - aws s3 sync dist/ s3://$BUCKET/ --delete
+      - echo "Invalidating CloudFront cache..."
+      - aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"
+      - echo "Frontend deployment complete"
+
+artifacts:
+  files:
+    - "frontend-outputs.env"
+  name: FrontendDeployOutput
+

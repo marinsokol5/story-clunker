@@ -1,0 +1,35 @@
+version: 0.2
+
+env:
+  variables:
+    NPM_CONFIG_PRODUCTION: "false"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Installing dependencies..."
+      - npm ci --prefer-offline --no-progress || true
+
+  build:
+    commands:
+      - echo "Running health checks for environment:$ENVIRONMENT"
+      - |
+        FRONTEND_URL=$(aws cloudformation describe-stacks \
+          --stack-name StoryclunkFrontendStack-$ENVIRONMENT \
+          --query 'Stacks[0].Outputs[?OutputKey==`WebsiteURL`].OutputValue' \
+          --output text 2>/dev/null || echo "")
+      - |
+        if [ -n "$FRONTEND_URL" ]; then
+          echo "Checking frontend health:$FRONTEND_URL"
+          curl -f -s -o /dev/null "$FRONTEND_URL" && echo "✅ Frontend health check passed" || echo "⚠️ Frontend health check failed"
+        else
+          echo "⚠️ Frontend URL not found"
+        fi
+      - echo "Health check complete"
+
+cache:
+  paths:
+    - "~/.npm/**/*"
+

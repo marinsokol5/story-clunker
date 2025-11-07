@@ -1,0 +1,42 @@
+version: 0.2
+
+env:
+  variables:
+    NPM_CONFIG_PRODUCTION: "false"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Installing CDK dependencies..."
+      - (cd infra && npm ci --no-progress)
+
+  build:
+    commands:
+      - echo "Checking for pipeline infrastructure changes..."
+      - (cd infra && npm run build)
+      - |
+        (cd infra && npx cdk diff StoryclunkPipelineStack \
+          --context pipelineOnly=true \
+          --context codeConnectionArn=$CODE_CONNECTION_ARN \
+          --context repositoryName=$REPOSITORY_NAME \
+          --context branchName=$BRANCH_NAME > pipeline-diff.txt || true)
+      - cat infra/pipeline-diff.txt
+      - |
+        if grep -q 'Number of stacks with differences: 0' infra/pipeline-diff.txt; then
+          echo "No pipeline changes detected"
+        else
+          echo "Pipeline changes detected, deploying..."
+          (cd infra && npx cdk deploy StoryclunkPipelineStack \
+            --context pipelineOnly=true \
+            --context codeConnectionArn=$CODE_CONNECTION_ARN \
+            --context repositoryName=$REPOSITORY_NAME \
+            --context branchName=$BRANCH_NAME \
+            --require-approval never)
+        fi
+
+cache:
+  paths:
+    - "~/.npm/**/*"
+

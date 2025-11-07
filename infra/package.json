@@ -23,7 +23,8 @@
   "devDependencies": {
     "@types/node": "^22.16.5",
     "typescript": "^5.8.3",
-    "aws-cdk": "^2.200.0"
+    "aws-cdk": "^2.200.0",
+    "ts-node": "^10.9.2"
   }
 }
 

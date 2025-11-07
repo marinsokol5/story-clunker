@@ -1,0 +1,32 @@
+version: 0.2
+
+env:
+  variables:
+    NPM_CONFIG_PRODUCTION: "false"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Preparing Lambda builds..."
+
+  build:
+    commands:
+      - mkdir -p lambda-builds
+      - |
+        for dir in infra/lambda/*/; do
+          name=$(basename "$dir")
+          echo "Building Lambda function:$name"
+          (cd "$dir" && npm ci --prefer-offline --no-progress && zip -r "../../lambda-builds/${name}.zip" . -x "*.git*")
+        done
+
+artifacts:
+  files:
+    - "lambda-builds/*.zip"
+  name: BackendBuildOutput
+
+cache:
+  paths:
+    - "~/.npm/**/*"
+
