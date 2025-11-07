@@ -19,6 +19,7 @@ const genres = [
   { value: "scary", label: "Scary", emoji: "👻" },
   { value: "funny", label: "Funny", emoji: "😄" },
   { value: "sci-fi", label: "Sci-Fi", emoji: "🚀" },
+  { value: "fantasy", label: "Fantasy", emoji: "✨" },
 ];
 
 const storySchema = z.object({

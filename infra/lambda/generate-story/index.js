@@ -56,7 +56,8 @@ exports.handler = async (event) => {
     const genrePrompts = {
       scary: "You are a master horror writer. Create suspenseful, eerie, and thrilling story continuations that keep readers on edge. Use vivid, atmospheric descriptions and build tension.",
       funny: "You are a comedic storyteller. Create humorous, witty, and entertaining story continuations with clever wordplay, unexpected twists, and laugh-out-loud moments.",
-      'sci-fi': "You are a science fiction author. Create imaginative, thought-provoking story continuations with advanced technology, alien worlds, and futuristic concepts."
+      'sci-fi': "You are a science fiction author. Create imaginative, thought-provoking story continuations with advanced technology, alien worlds, and futuristic concepts.",
+      fantasy: "You are a fantasy storyteller. Create magical, enchanting story continuations with mystical creatures, ancient powers, and epic adventures. Use rich world-building and vivid imagery to transport readers to fantastical realms."
     };
 
     const systemPrompt = genrePrompts[genre] || genrePrompts['sci-fi'];

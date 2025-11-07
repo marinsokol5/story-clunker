@@ -24,6 +24,7 @@ const genreColors = {
   scary: "bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20",
   funny: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
   "sci-fi": "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
+  fantasy: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
 };
 
 const StoryList = ({ onSelectStory, refreshTrigger }: StoryListProps) => {

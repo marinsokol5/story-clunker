@@ -42,6 +42,7 @@ All colors MUST be HSL.
     --genre-scary: 0 70% 45%;
     --genre-funny: 45 95% 55%;
     --genre-scifi: 210 80% 55%;
+    --genre-fantasy: 280 70% 60%;
 
     /* Creative gradients */
     --gradient-creative: linear-gradient(135deg, hsl(25 95% 53%) 0%, hsl(35 100% 60%) 100%);
