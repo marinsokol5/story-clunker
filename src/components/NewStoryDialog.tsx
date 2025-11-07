@@ -123,7 +123,7 @@ const NewStoryDialog = ({ open, onOpenChange, onStoryCreated }: NewStoryDialogPr
 
           <div className="space-y-2">
             <Label>Genre</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               {genres.map((g) => (
                 <Button
                   key={g.value}
