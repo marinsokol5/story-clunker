@@ -119,19 +119,30 @@ const StoryBuilder = ({ storyId, onBack }: StoryBuilderProps) => {
   const generateAIContinuation = async () => {
     setIsGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("generate-story", {
-        body: {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch('/api/generate-story', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
           previousSegments: segments.map((s) => ({
             content: s.content,
             is_ai_generated: s.is_ai_generated,
           })),
           genre: story?.genre,
-        },
+        }),
       });
 
-      if (error) {
-        throw error;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
+
+      const data = await response.json();
 
       const nextOrder = segments.length + 1;
       
@@ -180,11 +191,24 @@ const StoryBuilder = ({ storyId, onBack }: StoryBuilderProps) => {
   const handleGetSuggestions = async (segmentId: string) => {
     setAnalyzingSegmentId(segmentId);
     try {
-      const { data, error } = await supabase.functions.invoke("suggest-improvements", {
-        body: { segmentId },
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch('/api/suggest-improvements', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ segmentId }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
 
       setSuggestions(data.suggestions);
       setShowSuggestions(true);
